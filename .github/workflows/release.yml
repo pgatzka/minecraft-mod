@@ -22,10 +22,10 @@ jobs:
       MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
       CURSEFORGE_TOKEN: ${{ secrets.CURSEFORGE_TOKEN }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Validate the Gradle wrapper
-        uses: gradle/actions/wrapper-validation@v4
+        uses: gradle/actions/wrapper-validation@v6
 
       - name: Check that the tag matches mod_version
         run: |
@@ -46,14 +46,14 @@ jobs:
 
       - name: Upload the GameTest server log
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: gametest-logs-${{ github.ref_name }}
           path: run/logs/
           if-no-files-found: ignore
 
       - name: Create the GitHub release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: build/libs/minecraftmod-${{ env.MOD_VERSION }}.jar
           generate_release_notes: true
