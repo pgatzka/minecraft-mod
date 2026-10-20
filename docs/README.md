@@ -31,7 +31,9 @@ on settlers. Ask the user to try these.
 **Not built yet / open questions** (ask the user before deciding):
 
 - **Builders don't build yet.** The next step is the Builder's Hut's builder working through construction sites.
-- Git: work is committed on `main`. Commit only when asked.
+- Git: work is committed on `main`. Commit only when asked. There is no GitHub remote yet, so CI hasn't run yet.
+- `gradle.properties` contains `org.gradle.java.home=C:/Program Files/...`, which
+  [0003](decisions/0003-build-on-jdk-21.md) says should not be there. CI overrides it; ask the user whether to remove it.
 
 ## Working rules (from the user)
 
@@ -63,12 +65,28 @@ Run `runGameTestServer` in the foreground with a timeout, and afterwards check t
 A stopped background run once left Gradle and a server running. The test log is easiest to read via
 `./gradlew runGameTestServer > build/gametest.log` and then grepping for `failed!` and `required tests`.
 
+## CI/CD
+
+GitHub Actions ([0032](decisions/0032-ci-cd-github-actions.md)):
+
+- `.github/workflows/ci.yml`: every push to `main` and every pull request builds the mod and runs all GameTests. The
+  jar and the GameTest server log are uploaded as artifacts.
+- `.github/workflows/release.yml`: to release, bump `mod_version` in `gradle.properties`, commit, then
+  `git tag v<version>` and `git push origin v<version>`. It builds, tests, and creates a GitHub release with the jar
+  (`-` in the version = pre-release). It also publishes to Modrinth/CurseForge once the repository has the secrets
+  `MODRINTH_TOKEN`/`CURSEFORGE_TOKEN` and the variables `MODRINTH_PROJECT_ID`/`CURSEFORGE_PROJECT_ID`.
+- `.github/actions/setup-build`: the shared JDK 17 + 21 and Gradle setup.
+- `.github/dependabot.yml`: weekly updates for the Actions only.
+
+Lint workflow changes with [actionlint](https://github.com/rhysd/actionlint) before committing them.
+
 Known harmless noise: a javac note about deprecated API (overriding `Block.use`/`onRemove` is normal in 1.20.1), and startup stack traces about
 `setAccessible`/netty/`server.properties` in the test server log.
 
 ## Repository layout
 
 ```
+.github/                 CI/CD workflows, shared setup action, Dependabot
 docs/                    these notes and the decision log
 tools/                   make_test_structure.py (GameTest platforms), Resize.java (texture downscaling)
 src/main/java/com/philgatzka/minecraftmod/

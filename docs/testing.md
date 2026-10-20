@@ -41,4 +41,7 @@ Rendering, screens and input: outlines, the ghost preview, the territory fence, 
 in shared, tested code (for example, `BlueprintPlacement` and `ConstructionSites.checkArea` are used by both the
 preview and the server), and ask the user to check the visuals in-game.
 
+CI runs the same command on every push and pull request (see [README.md](README.md#cicd)); its log is uploaded as the
+`gametest-logs-<commit>` artifact.
+
 After a run, check that no `java.exe` from the test server is left (`Get-CimInstance Win32_Process -Filter "Name='java.exe'"`).

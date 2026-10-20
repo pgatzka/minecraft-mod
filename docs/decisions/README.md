@@ -68,3 +68,4 @@ What follows from it: limitations, follow-ups, things to watch out for.
 | [0029](0029-clients-know-other-territories.md) | Clients know other settlements' territories | Accepted |
 | [0030](0030-settler-inventory.md) | Settlers have a 4x10 inventory with an armor column | Accepted (tint superseded by 0031) |
 | [0031](0031-vanilla-armor-slot-icons.md) | Empty armor slots show vanilla's armor icons | Accepted |
+| [0032](0032-ci-cd-github-actions.md) | CI/CD with GitHub Actions: build + GameTests, tag releases | Accepted |

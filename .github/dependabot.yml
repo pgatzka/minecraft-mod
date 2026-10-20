@@ -1,0 +1,11 @@
+# Keeps the GitHub Actions used by the workflows up to date. Gradle, ForgeGradle and Forge are left alone on purpose:
+# they are pinned to the 1.20.1 MDK's tested setup (docs/decisions/0001, 0003, 0032).
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ['*']

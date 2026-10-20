@@ -1,0 +1,52 @@
+name: CI
+
+# Every push to main and every pull request: build the mod and run all GameTests (docs/testing.md)
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build and GameTests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate the Gradle wrapper
+        uses: gradle/actions/wrapper-validation@v4
+
+      - uses: ./.github/actions/setup-build
+
+      - name: Build
+        run: ./gradlew build
+
+      # Starts a headless server, runs every GameTest and exits non-zero if any fail
+      - name: Run GameTests
+        run: ./gradlew runGameTestServer
+
+      - name: Upload the mod jar
+        uses: actions/upload-artifact@v4
+        with:
+          name: minecraftmod-${{ github.sha }}
+          path: build/libs/*.jar
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload the GameTest server log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gametest-logs-${{ github.sha }}
+          path: run/logs/
+          if-no-files-found: ignore
+          retention-days: 14
