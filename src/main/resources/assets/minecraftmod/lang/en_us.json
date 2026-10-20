@@ -95,6 +95,7 @@
   "settlement.minecraftmod.error.unknown_settler": "That settler is no longer part of your settlement.",
   "settlement.minecraftmod.error.workplace_unclaimed": "This building doesn't belong to a settlement.",
   "settlement.minecraftmod.moved": "%s now has its Town Hall here.",
+  "settler.minecraftmod.error.not_leader": "Only the leader of %s can open this settler's inventory.",
   "territory.minecraftmod.hidden": "Settlement territory hidden",
   "territory.minecraftmod.none": "You don't lead a settlement in this dimension",
   "territory.minecraftmod.shown": "Showing settlement territory (%s chunks)"

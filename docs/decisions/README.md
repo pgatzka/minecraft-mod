@@ -66,3 +66,4 @@ What follows from it: limitations, follow-ups, things to watch out for.
 | [0027](0027-blueprint-load-rotation.md) | `/blueprint load` takes an optional rotation | Accepted |
 | [0028](0028-settlement-moves-to-new-town-hall.md) | A settlement without a Town Hall can move to a free one | Accepted |
 | [0029](0029-clients-know-other-territories.md) | Clients know other settlements' territories | Accepted |
+| [0030](0030-settler-inventory.md) | Settlers have a 4x10 inventory with an armor column | Accepted |

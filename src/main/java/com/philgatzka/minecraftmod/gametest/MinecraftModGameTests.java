@@ -15,6 +15,7 @@ import com.philgatzka.minecraftmod.construction.ConstructionSiteData;
 import com.philgatzka.minecraftmod.construction.ConstructionSites;
 import com.philgatzka.minecraftmod.entity.SettlerEntity;
 import com.philgatzka.minecraftmod.entity.SettlerNames;
+import com.philgatzka.minecraftmod.menu.SettlerInventoryMenu;
 import com.philgatzka.minecraftmod.network.TerritoryPacket;
 import com.philgatzka.minecraftmod.settlement.Settlement;
 import com.philgatzka.minecraftmod.settlement.SettlementData;
@@ -34,7 +35,9 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -376,6 +379,100 @@ public class MinecraftModGameTests
     }
 
     // --- Workplaces (Builder's Hut) ---
+
+    // --- Settler inventory ---
+
+    private static SettlerEntity spawnSettler(GameTestHelper helper)
+    {
+        return helper.spawn(MinecraftMod.SETTLER.get(), ABOVE_FLOOR);
+    }
+
+    @GameTest(template = PLATFORM)
+    public static void settlerInventorySurvivesSaveAndLoad(GameTestHelper helper)
+    {
+        SettlerEntity settler = spawnSettler(helper);
+        settler.getStorage().setItem(5, new ItemStack(Items.DIRT, 12));
+        settler.getStorage().setItem(SettlerEntity.STORAGE_SIZE - 1, new ItemStack(Items.BREAD, 3));
+        settler.setItemSlot(EquipmentSlot.HEAD, new ItemStack(Items.IRON_HELMET));
+
+        CompoundTag saved = settler.saveWithoutId(new CompoundTag());
+        settler.discard();
+        SettlerEntity loaded = MinecraftMod.SETTLER.get().create(helper.getLevel());
+        loaded.load(saved);
+
+        helper.assertTrue(ItemStack.matches(loaded.getStorage().getItem(5), new ItemStack(Items.DIRT, 12)), "Storage slot 5 should keep its dirt");
+        helper.assertTrue(ItemStack.matches(loaded.getStorage().getItem(SettlerEntity.STORAGE_SIZE - 1), new ItemStack(Items.BREAD, 3)),
+                "The last storage slot should keep its bread");
+        helper.assertTrue(loaded.getStorage().getItem(0).isEmpty(), "Items must stay in their slots, not move to the front");
+        helper.assertTrue(loaded.getItemBySlot(EquipmentSlot.HEAD).is(Items.IRON_HELMET), "The helmet should still be worn");
+        helper.succeed();
+    }
+
+    @GameTest(template = PLATFORM)
+    public static void settlerInventoryMenuEquipsArmorAndStoresItems(GameTestHelper helper)
+    {
+        SettlerEntity settler = spawnSettler(helper);
+        try
+        {
+            Player player = helper.makeMockPlayer();
+            SettlerInventoryMenu menu = SettlerInventoryMenu.forSettler(0, player.getInventory(), settler);
+            // The menu's first player slot is the player's inventory slot 9 (the top row above the hotbar)
+            player.getInventory().setItem(9, new ItemStack(Items.IRON_CHESTPLATE));
+            player.getInventory().setItem(10, new ItemStack(Items.DIRT, 64));
+
+            menu.quickMoveStack(player, SettlerInventoryMenu.PLAYER_START);
+            menu.quickMoveStack(player, SettlerInventoryMenu.PLAYER_START + 1);
+
+            helper.assertTrue(settler.getItemBySlot(EquipmentSlot.CHEST).is(Items.IRON_CHESTPLATE), "Shift-clicking a chestplate should put it on the settler");
+            helper.assertTrue(ItemStack.matches(settler.getStorage().getItem(0), new ItemStack(Items.DIRT, 64)), "Shift-clicking dirt should put it in storage");
+            helper.assertTrue(player.getInventory().getItem(9).isEmpty() && player.getInventory().getItem(10).isEmpty(),
+                    "Both items should have left the player's inventory");
+            helper.assertFalse(menu.getSlot(SettlerInventoryMenu.ARMOR_START).mayPlace(new ItemStack(Items.DIRT)), "Armor slots only take armor");
+            helper.assertFalse(menu.getSlot(SettlerInventoryMenu.ARMOR_START).mayPlace(new ItemStack(Items.IRON_BOOTS)), "The head slot must not take boots");
+
+            menu.quickMoveStack(player, SettlerInventoryMenu.ARMOR_START + 1);
+            helper.assertTrue(settler.getItemBySlot(EquipmentSlot.CHEST).isEmpty(), "Shift-clicking the worn chestplate should take it off");
+            helper.assertTrue(player.getInventory().contains(new ItemStack(Items.IRON_CHESTPLATE)), "The chestplate should go back to the player");
+        }
+        finally
+        {
+            settler.discard();
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template = PLATFORM)
+    public static void deadSettlerDropsInventory(GameTestHelper helper)
+    {
+        SettlerEntity settler = spawnSettler(helper);
+        settler.getStorage().setItem(7, new ItemStack(Items.BREAD, 5));
+        settler.setItemSlot(EquipmentSlot.FEET, new ItemStack(Items.IRON_BOOTS));
+
+        settler.kill();
+
+        helper.assertItemEntityPresent(Items.BREAD, ABOVE_FLOOR, 3.0);
+        helper.assertItemEntityPresent(Items.IRON_BOOTS, ABOVE_FLOOR, 3.0);
+        helper.getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(helper.absolutePos(ABOVE_FLOOR)).inflate(3.0)).forEach(Entity::discard);
+        helper.succeed();
+    }
+
+    @GameTest(template = PLATFORM, batch = "onlyLeaderOpensSettlerInventory")
+    public static void onlyLeaderOpensSettlerInventory(GameTestHelper helper)
+    {
+        clearSettlementsAndSites(helper);
+        Player leader = helper.makeMockPlayer();
+        Settlement settlement = foundSettlement(helper, leader);
+        if (!(helper.getLevel().getEntity(firstSettlers(helper, settlement, 1).get(0)) instanceof SettlerEntity member))
+            throw new IllegalStateException("The founding settler should exist");
+        SettlerEntity loner = spawnSettler(helper);
+        Player stranger = helper.makeMockPlayer();
+
+        helper.assertTrue(member.canOpenInventory(leader), "The leader may open their settler's inventory");
+        helper.assertFalse(member.canOpenInventory(stranger), "Other players must not open a settlement's settler");
+        helper.assertTrue(loner.canOpenInventory(stranger), "A settler without a settlement is open to anyone");
+        loner.discard();
+        helper.succeed();
+    }
 
     private static final BlockPos HUT_A = new BlockPos(3, 2, 1);
     private static final BlockPos HUT_B = new BlockPos(1, 2, 3);

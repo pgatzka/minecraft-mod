@@ -11,7 +11,8 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import org.lwjgl.glfw.GLFW;
 
-// Base for slot-less menu screens: a code-drawn panel with a title, and widgets laid out with column()
+// Base for menu screens: a code-drawn panel with a title, and widgets laid out with column().
+// Screens with slots (SettlerInventoryScreen) draw their slot backgrounds on top of the panel themselves.
 public abstract class UiScreen<M extends AbstractContainerMenu> extends AbstractContainerScreen<M>
 {
     protected static final int PADDING = 8;
@@ -73,7 +74,7 @@ public abstract class UiScreen<M extends AbstractContainerMenu> extends Abstract
         UiDraw.panel(graphics, leftPos, topPos, imageWidth, imageHeight);
     }
 
-    // Title only: these screens have no player inventory, so skip its label
+    // Title only: most of these screens have no player inventory, so skip its label
     @Override
     protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY)
     {

@@ -11,7 +11,8 @@ and growing settlements:
 
 - **Town Hall** block: right-click to found a settlement (one per player). Founding spawns settlers. A settlement whose
   Town Hall was destroyed can move to a free one.
-- **Settlers**: player-like mobs with random names that belong to a settlement and can be given jobs.
+- **Settlers**: player-like mobs with random names that belong to a settlement and can be given jobs. Sneak +
+  right-click opens a settler's inventory (armor column + 36 storage slots); only its settlement's leader may.
 - **Builder's Hut**: a workplace; its screen assigns one settler as its builder.
 - **Blueprints**: operators capture existing structures around a city block (Blueprint Wand or `/blueprint`)
   and save them as structure files.
@@ -22,9 +23,10 @@ and growing settlements:
 
 ## Status (2026-10-20)
 
-Everything above works and is covered by 46 GameTests that pass. Not checked in the real game yet, because GameTests
+Everything above works and is covered by 50 GameTests that pass. Not checked in the real game yet, because GameTests
 can't draw or click: the screens, the selection and site outlines, the Builder's Wand ghost preview, the territory
-fence and the R/B keys, and the Town Hall screen's "Move ... here" button. Ask the user to try these.
+fence and the R/B keys, the Town Hall screen's "Move ... here" button, the settler inventory screen and armor shown
+on settlers. Ask the user to try these.
 
 **Not built yet / open questions** (ask the user before deciding):
 

@@ -22,7 +22,8 @@ All persistent game state lives in `SavedData` on the overworld, keyed by ids, n
 | `construction/ConstructionSiteData` | `minecraftmod_construction_sites.dat` | `ConstructionSite`s: blueprint id, dimension, city block position, rotation, area, settlement id |
 
 Blocks and entities only store **references**: `TownHallBlockEntity` and `WorkplaceBlockEntity` store a settlement
-id, and `SettlerEntity` stores its settlement id. The settlement is the single source of truth for who works where
+id, and `SettlerEntity` stores its settlement id. The one exception is a settler's inventory (armor and 36 storage
+slots), which lives on the entity ([0030](decisions/0030-settler-inventory.md)). The settlement is the single source of truth for who works where
 ([0016](decisions/0016-workplaces-and-jobs.md)), so it works while chunks are unloaded.
 
 Rules live in static service classes that both packets and GameTests call:
@@ -48,6 +49,10 @@ record written into the open packet ([0010](decisions/0010-slotless-menus.md)):
 | `WorkplaceMenu` | `WorkplaceInfo` | `WorkplaceScreen` | right-click Builder's Hut (any `WorkplaceBlock`) |
 | `BlueprintMenu` | `BlueprintMenu.Info` | `BlueprintScreen` | Blueprint Wand, right-click air |
 | `BlueprintPickerMenu` | `BlueprintPickerMenu.Info` | `BlueprintPickerScreen` | Builder's Wand, right-click air |
+
+`SettlerInventoryMenu` / `SettlerInventoryScreen` (sneak + right-click a settler) is the one menu **with slots**: the
+settler's worn armor, its storage container and the player's inventory, kept in sync by vanilla's slot sync. Its
+screen draws the slot backgrounds with `UiDraw.slot`.
 
 The menu tells the server which block or selection a request is about (`player.containerMenu`) and whether the
 player is still near it (`stillValid`). After a successful action the server **reopens** the menu to refresh it.

@@ -20,6 +20,14 @@ public final class UiDraw
         graphics.fill(x + 1 + thickness, y + 1 + thickness, right - 1 - thickness, bottom - 1 - thickness, fill);
     }
 
+    // An 18x18 inventory slot around the 16x16 item at (x + 1, y + 1): dark top-left edge, light bottom-right edge
+    public static void slot(GuiGraphics graphics, int x, int y, int fill)
+    {
+        graphics.fill(x, y, x + 18, y + 18, UiTheme.SLOT_SHADOW);
+        graphics.fill(x + 1, y + 1, x + 18, y + 18, UiTheme.SLOT_HIGHLIGHT);
+        graphics.fill(x + 1, y + 1, x + 17, y + 17, fill);
+    }
+
     // The background panel of a screen, like vanilla's container windows
     public static void panel(GuiGraphics graphics, int x, int y, int width, int height)
     {

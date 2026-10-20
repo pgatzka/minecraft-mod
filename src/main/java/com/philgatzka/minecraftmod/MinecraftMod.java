@@ -10,6 +10,7 @@ import com.philgatzka.minecraftmod.client.ConstructionRenderer;
 import com.philgatzka.minecraftmod.client.renderer.SettlerRenderer;
 import com.philgatzka.minecraftmod.client.screen.BlueprintPickerScreen;
 import com.philgatzka.minecraftmod.client.screen.BlueprintScreen;
+import com.philgatzka.minecraftmod.client.screen.SettlerInventoryScreen;
 import com.philgatzka.minecraftmod.client.screen.TownHallScreen;
 import com.philgatzka.minecraftmod.client.screen.WorkplaceScreen;
 import com.philgatzka.minecraftmod.construction.ConstructionSites;
@@ -18,6 +19,7 @@ import com.philgatzka.minecraftmod.item.BlueprintWandItem;
 import com.philgatzka.minecraftmod.item.BuildersWandItem;
 import com.philgatzka.minecraftmod.menu.BlueprintMenu;
 import com.philgatzka.minecraftmod.menu.BlueprintPickerMenu;
+import com.philgatzka.minecraftmod.menu.SettlerInventoryMenu;
 import com.philgatzka.minecraftmod.menu.TownHallMenu;
 import com.philgatzka.minecraftmod.menu.WorkplaceMenu;
 import com.philgatzka.minecraftmod.network.ModNetwork;
@@ -105,6 +107,9 @@ public class MinecraftMod
     public static final RegistryObject<EntityType<SettlerEntity>> SETTLER = ENTITY_TYPES.register("settler", () -> EntityType.Builder.of(SettlerEntity::new, MobCategory.CREATURE)
             .sized(0.6f, 1.8f).build("settler"));
     public static final RegistryObject<Item> SETTLER_SPAWN_EGG = ITEMS.register("settler_spawn_egg", () -> new ForgeSpawnEggItem(SETTLER, 0x00AFAF, 0x463AA5, new Item.Properties()));
+    // A settler's armor and storage, opened with sneak + right-click on the settler
+    public static final RegistryObject<MenuType<SettlerInventoryMenu>> SETTLER_INVENTORY_MENU = MENU_TYPES.register("settler_inventory",
+            () -> IForgeMenuType.create(SettlerInventoryMenu::new));
 
     // The mod's creative tab with all its items, placed after the combat tab
     public static final RegistryObject<CreativeModeTab> MOD_TAB = CREATIVE_MODE_TABS.register("main", () -> CreativeModeTab.builder()
@@ -176,6 +181,7 @@ public class MinecraftMod
                 MenuScreens.register(WORKPLACE_MENU.get(), WorkplaceScreen::new);
                 MenuScreens.register(BLUEPRINT_MENU.get(), BlueprintScreen::new);
                 MenuScreens.register(BLUEPRINT_PICKER_MENU.get(), BlueprintPickerScreen::new);
+                MenuScreens.register(SETTLER_INVENTORY_MENU.get(), SettlerInventoryScreen::new);
             });
         }
 
