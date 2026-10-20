@@ -52,7 +52,7 @@ record written into the open packet ([0010](decisions/0010-slotless-menus.md)):
 
 `SettlerInventoryMenu` / `SettlerInventoryScreen` (sneak + right-click a settler) is the one menu **with slots**: the
 settler's worn armor, its storage container and the player's inventory, kept in sync by vanilla's slot sync. Its
-screen draws the slot backgrounds with `UiDraw.slot`.
+screen draws the slot backgrounds with `UiDraw.slot`; empty armor slots show vanilla's armor icons.
 
 The menu tells the server which block or selection a request is about (`player.containerMenu`) and whether the
 player is still near it (`stillValid`). After a successful action the server **reopens** the menu to refresh it.

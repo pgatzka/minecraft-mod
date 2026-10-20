@@ -3,6 +3,7 @@ package com.philgatzka.minecraftmod.menu;
 import com.philgatzka.minecraftmod.MinecraftMod;
 import com.philgatzka.minecraftmod.entity.SettlerEntity;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
@@ -12,6 +13,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.network.NetworkHooks;
@@ -25,6 +27,9 @@ public class SettlerInventoryMenu extends AbstractContainerMenu
     public static final int STORAGE_COLUMNS = 9;
     // The armor column, top to bottom
     public static final EquipmentSlot[] ARMOR_SLOTS = {EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET};
+    // Vanilla's empty armor slot icons from the player inventory, in the same order
+    private static final ResourceLocation[] ARMOR_ICONS = {InventoryMenu.EMPTY_ARMOR_SLOT_HELMET, InventoryMenu.EMPTY_ARMOR_SLOT_CHESTPLATE,
+            InventoryMenu.EMPTY_ARMOR_SLOT_LEGGINGS, InventoryMenu.EMPTY_ARMOR_SLOT_BOOTS};
 
     // Where the slots' items are drawn, relative to the screen's panel (SettlerInventoryScreen draws the slots around them)
     public static final int SLOT_SIZE = 18;
@@ -58,7 +63,8 @@ public class SettlerInventoryMenu extends AbstractContainerMenu
         this.settler = settler;
 
         for (int row = 0; row < ROWS; row++)
-            addSlot(new ArmorSlot(armor, row, ARMOR_X, GRID_Y + row * SLOT_SIZE, ARMOR_SLOTS[row]));
+            addSlot(new ArmorSlot(armor, row, ARMOR_X, GRID_Y + row * SLOT_SIZE, ARMOR_SLOTS[row])
+                    .setBackground(InventoryMenu.BLOCK_ATLAS, ARMOR_ICONS[row]));
         for (int row = 0; row < ROWS; row++)
             for (int column = 0; column < STORAGE_COLUMNS; column++)
                 addSlot(new Slot(storage, row * STORAGE_COLUMNS + column, STORAGE_X + column * SLOT_SIZE, GRID_Y + row * SLOT_SIZE));

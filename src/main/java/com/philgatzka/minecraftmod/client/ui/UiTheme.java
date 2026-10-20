@@ -24,9 +24,8 @@ public final class UiTheme
     public static final int LIST_SCROLL_TRACK = 0xFF6B6B6B;
     public static final int LIST_SCROLL_THUMB = 0xFFD0D0D0;
 
-    // Inventory slots, sunken like vanilla's; armor slots are tinted so empty ones are still recognizable
+    // Inventory slots, sunken like vanilla's
     public static final int SLOT_FILL = 0xFF8B8B8B;
-    public static final int SLOT_ARMOR_FILL = 0xFF7D879E;
     public static final int SLOT_SHADOW = 0xFF373737;
     public static final int SLOT_HIGHLIGHT = 0xFFFFFFFF;
 

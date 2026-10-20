@@ -1,6 +1,6 @@
 # 0011. GUIs drawn in code with a small framework, no texture assets
 
-- Status: Accepted
+- Status: Accepted. Exception: vanilla's built-in empty armor slot icons are used ([0031](0031-vanilla-armor-slot-icons.md)).
 - Date: 2026-10-20
 - Decided by: user (no assets; build a framework), Claude (design)
 

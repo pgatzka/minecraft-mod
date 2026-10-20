@@ -24,12 +24,9 @@ public class SettlerInventoryScreen extends UiScreen<SettlerInventoryMenu>
     protected void renderBg(GuiGraphics graphics, float partialTick, int mouseX, int mouseY)
     {
         super.renderBg(graphics, partialTick, mouseX, mouseY);
-        for (int index = 0; index < menu.slots.size(); index++)
-        {
-            Slot slot = menu.slots.get(index);
-            int fill = index < SettlerInventoryMenu.STORAGE_START ? UiTheme.SLOT_ARMOR_FILL : UiTheme.SLOT_FILL;
-            UiDraw.slot(graphics, leftPos + slot.x - 1, topPos + slot.y - 1, fill);
-        }
+        // Empty armor slots show vanilla's armor icons, which the container screen draws on top of these
+        for (Slot slot : menu.slots)
+            UiDraw.slot(graphics, leftPos + slot.x - 1, topPos + slot.y - 1, UiTheme.SLOT_FILL);
     }
 
     @Override

@@ -1,6 +1,6 @@
 # 0030. Settlers have a 4x10 inventory with an armor column
 
-- Status: Accepted
+- Status: Accepted. The armor slot tint under Drawing is superseded by [0031](0031-vanilla-armor-slot-icons.md).
 - Date: 2026-10-20
 - Decided by: user ("settlers have an inventory of 4x10, where the most left slots is the armor slots. shift+rightclick
   opens a settlers inventory allowing me to add or remove items"), Claude (the details below)
