@@ -15,6 +15,7 @@ import com.philgatzka.minecraftmod.construction.ConstructionSiteData;
 import com.philgatzka.minecraftmod.construction.ConstructionSites;
 import com.philgatzka.minecraftmod.entity.SettlerEntity;
 import com.philgatzka.minecraftmod.entity.SettlerNames;
+import com.philgatzka.minecraftmod.network.TerritoryPacket;
 import com.philgatzka.minecraftmod.settlement.Settlement;
 import com.philgatzka.minecraftmod.settlement.SettlementData;
 import com.philgatzka.minecraftmod.settlement.Settlements;
@@ -296,6 +297,46 @@ public class MinecraftModGameTests
         loaded.load(saved);
 
         helper.assertTrue(townHall.getSettlementId().equals(loaded.getSettlementId()), "Settlement id should survive save and load");
+        helper.succeed();
+    }
+
+    @GameTest(template = PLATFORM, batch = "settlementMovesToNewTownHall")
+    public static void settlementMovesToNewTownHall(GameTestHelper helper)
+    {
+        clearSettlementsAndSites(helper);
+        Player leader = helper.makeMockPlayer();
+        helper.assertTrue(Settlements.tryCreate(leader, placeTownHall(helper, TOWN_HALL_A), "Rivertown").isSuccess(), "Founding should succeed");
+        TownHallBlockEntity newTownHall = placeTownHall(helper, TOWN_HALL_B);
+        helper.assertFalse(Settlements.tryMoveTo(leader, newTownHall).isSuccess(), "A settlement that still has its Town Hall must not move");
+
+        helper.destroyBlock(TOWN_HALL_A);
+        Settlements.CreateResult moved = Settlements.tryMoveTo(leader, newTownHall);
+
+        helper.assertTrue(moved.isSuccess(), "Moving to a free Town Hall should succeed, got: " + moved.error());
+        Settlement settlement = moved.settlement();
+        helper.assertTrue(newTownHall.getBlockPos().equals(settlement.townHallPos()), "The settlement should have its new Town Hall");
+        helper.assertTrue(settlement.id().equals(newTownHall.getSettlementId()), "The new Town Hall should point at the settlement");
+        helper.assertTrue(settlement.settlers().size() == Config.settlersOnFounding, "The settlers should stay in the settlement");
+        helper.assertTrue(Territory.contains(settlement, newTownHall.getBlockPos()), "The territory should be around the new Town Hall");
+        helper.succeed();
+    }
+
+    @GameTest(template = PLATFORM, batch = "settlementCannotMoveToTakenTownHallOrForeignTerritory")
+    public static void settlementCannotMoveToTakenTownHallOrForeignTerritory(GameTestHelper helper)
+    {
+        clearSettlementsAndSites(helper);
+        Player leader = helper.makeMockPlayer();
+        helper.assertTrue(Settlements.tryCreate(leader, placeTownHall(helper, TOWN_HALL_A), "Rivertown").isSuccess(), "Founding should succeed");
+        helper.destroyBlock(TOWN_HALL_A);
+        // Another settlement is founded right next to where Rivertown's Town Hall was
+        TownHallBlockEntity taken = placeTownHall(helper, TOWN_HALL_B);
+        helper.assertTrue(Settlements.tryCreate(helper.makeMockPlayer(), taken, "Hilltop").isSuccess(), "Founding Hilltop should succeed");
+
+        helper.assertFalse(Settlements.tryMoveTo(leader, taken).isSuccess(), "A Town Hall of another settlement must not be taken over");
+        TownHallBlockEntity inForeignTerritory = placeTownHall(helper, TOWN_HALL_A);
+        helper.assertFalse(Settlements.tryMoveTo(leader, inForeignTerritory).isSuccess(), "Moving into another settlement's territory must be rejected");
+        helper.assertTrue(inForeignTerritory.getSettlementId() == null, "The rejected Town Hall should stay free");
+        helper.assertFalse(Settlements.tryMoveTo(helper.makeMockPlayer(), inForeignTerritory).isSuccess(), "A player without a settlement can't move one");
         helper.succeed();
     }
 
@@ -585,7 +626,7 @@ public class MinecraftModGameTests
             helper.assertTrue(Blueprints.list(helper.getLevel().getServer()).stream().anyMatch(entry -> entry.id().equals(saved.id()) && entry.inWorld()),
                     "The saved blueprint should be listed");
 
-            Blueprints.place(helper.getLevel(), blueprint, helper.absolutePos(COPY_MIN));
+            Blueprints.place(helper.getLevel(), blueprint, helper.absolutePos(COPY_MIN), Rotation.NONE);
             assertCopyMatchesSource(helper);
             if (!(helper.getBlockEntity(COPY_MIN.offset(1, 0, 1)) instanceof TownHallBlockEntity copiedTownHall))
                 throw new IllegalStateException("The copy should contain a Town Hall with its block entity");
@@ -616,6 +657,35 @@ public class MinecraftModGameTests
             helper.assertTrue(result == 1, "/blueprint load should succeed, returned " + result);
             assertCopyMatchesSource(helper);
             helper.assertTrue(server.getCommands().performPrefixedCommand(source, "blueprint list") >= 1, "/blueprint list should list it");
+        }
+        finally
+        {
+            deleteBlueprint(helper, saved);
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template = BLUEPRINT_PLATFORM)
+    public static void blueprintLoadCommandRotatesBlueprint(GameTestHelper helper)
+    {
+        buildSourceStructure(helper);
+        Blueprints.SaveResult saved = Blueprints.save(helper.getLevel(), sourceSelection(helper), uniqueBlueprintName(), "gametest");
+        try
+        {
+            helper.assertTrue(saved.isSuccess(), "Saving should succeed, got: " + saved.error());
+            MinecraftServer server = helper.getLevel().getServer();
+            CommandSourceStack source = server.createCommandSourceStack().withLevel(helper.getLevel()).withSuppressedOutput();
+            BlockPos at = helper.absolutePos(COPY_MIN);
+
+            int result = server.getCommands().performPrefixedCommand(source,
+                    "blueprint load " + saved.id() + " " + at.getX() + " " + at.getY() + " " + at.getZ() + " clockwise_90");
+
+            // A quarter turn clockwise moves (x, y, z) inside the 3x3x3 area to (2 - z, y, x); the area still starts at COPY_MIN
+            helper.assertTrue(result == 1, "/blueprint load with a rotation should succeed, returned " + result);
+            helper.assertBlockPresent(Blocks.STONE_BRICKS, COPY_MIN.offset(2, 0, 0));
+            helper.assertBlockPresent(Blocks.OAK_PLANKS, COPY_MIN.offset(0, 1, 2));
+            helper.assertBlockPresent(MinecraftMod.TOWN_HALL.get(), COPY_MIN.offset(1, 0, 1));
+            helper.assertBlockPresent(Blocks.AIR, COPY_MIN);
         }
         finally
         {
@@ -958,6 +1028,19 @@ public class MinecraftModGameTests
     }
 
     // --- Town Halls and other settlements' territory ---
+
+    @GameTest(template = PLATFORM)
+    public static void territoryPacketKeepsOwnAndOtherChunks(GameTestHelper helper)
+    {
+        TerritoryPacket packet = new TerritoryPacket(chunkSquare(new ChunkPos(0, 0), 1), chunkSquare(new ChunkPos(10, -4), 2));
+        FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
+        packet.encode(buf);
+        TerritoryPacket read = TerritoryPacket.decode(buf);
+
+        helper.assertTrue(read.chunks().equals(packet.chunks()), "The own territory should be the same after sending it");
+        helper.assertTrue(read.others().equals(packet.others()), "The other settlements' territory should be the same after sending it");
+        helper.succeed();
+    }
 
     @GameTest(template = PLATFORM, batch = "townHallCannotBeFoundedInOtherTerritory")
     public static void townHallCannotBeFoundedInOtherTerritory(GameTestHelper helper)

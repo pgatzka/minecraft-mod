@@ -91,7 +91,38 @@ public final class Settlements
         Settlement settlement = data.create(name, player.getUUID(), player.getGameProfile().getName(), level.dimension(), townHall.getBlockPos());
         townHall.setSettlementId(settlement.id());
         spawnSettlers(level, data, settlement, townHall.getBlockPos(), Config.settlersOnFounding);
-        Territory.syncLeader(level.getServer(), settlement);
+        Territory.syncChanged(level.getServer(), settlement);
+        return CreateResult.success(settlement);
+    }
+
+    // A leader whose settlement lost its Town Hall can make a free Town Hall its new one. Like founding, the Town Hall
+    // must not be in another settlement's territory; it must also be in the settlement's dimension.
+    public static CreateResult tryMoveTo(Player player, TownHallBlockEntity townHall)
+    {
+        ServerLevel level = serverLevel(townHall.getLevel());
+        SettlementData data = SettlementData.get(level.getServer());
+
+        Optional<Settlement> existing = getSettlement(level, townHall.getSettlementId());
+        if (existing.isPresent())
+            return CreateResult.failure(Component.translatable("settlement.minecraftmod.error.town_hall_taken", existing.get().name()));
+
+        Optional<Settlement> led = data.getByLeader(player.getUUID());
+        if (led.isEmpty())
+            return CreateResult.failure(Component.translatable("settlement.minecraftmod.error.not_a_leader"));
+        Settlement settlement = led.get();
+        if (settlement.townHallPos() != null)
+            return CreateResult.failure(Component.translatable("settlement.minecraftmod.error.has_town_hall", settlement.name()));
+        if (!settlement.dimension().equals(level.dimension()))
+            return CreateResult.failure(Component.translatable("settlement.minecraftmod.error.other_dimension", settlement.name()));
+
+        BlockPos pos = townHall.getBlockPos();
+        Optional<Settlement> owner = Territory.claimedBy(level, new BlueprintSelection(pos, pos), settlement.id());
+        if (owner.isPresent())
+            return CreateResult.failure(Component.translatable("construction.minecraftmod.error.other_territory", owner.get().name()));
+
+        data.setTownHall(settlement, pos);
+        townHall.setSettlementId(settlement.id());
+        Territory.syncChanged(level.getServer(), settlement);
         return CreateResult.success(settlement);
     }
 
@@ -142,7 +173,7 @@ public final class Settlements
                 .filter(settlement -> townHall.getBlockPos().equals(settlement.townHallPos()))
                 .ifPresent(settlement -> {
                     SettlementData.get(level.getServer()).setTownHall(settlement, null);
-                    Territory.syncLeader(level.getServer(), settlement);
+                    Territory.syncChanged(level.getServer(), settlement);
                 });
     }
 
@@ -163,7 +194,7 @@ public final class Settlements
                     .filter(settlement -> !settlement.buildings().contains(workplace.getBlockPos()))
                     .ifPresent(settlement -> {
                         SettlementData.get(level.getServer()).addBuilding(settlement, workplace.getBlockPos());
-                        Territory.syncLeader(level.getServer(), settlement);
+                        Territory.syncChanged(level.getServer(), settlement);
                     });
             return;
         }
@@ -173,7 +204,7 @@ public final class Settlements
                 .ifPresent(settlement -> {
                     workplace.setSettlementId(settlement.id());
                     SettlementData.get(level.getServer()).addBuilding(settlement, workplace.getBlockPos());
-                    Territory.syncLeader(level.getServer(), settlement);
+                    Territory.syncChanged(level.getServer(), settlement);
                 });
     }
 
@@ -207,7 +238,7 @@ public final class Settlements
             SettlementData data = SettlementData.get(level.getServer());
             settlement.workerAt(workplace.getBlockPos()).ifPresent(worker -> data.setJob(settlement, worker.entityId(), null, null));
             data.removeBuilding(settlement, workplace.getBlockPos());
-            Territory.syncLeader(level.getServer(), settlement);
+            Territory.syncChanged(level.getServer(), settlement);
         });
     }
 

@@ -1,6 +1,6 @@
 # 0004. All registrations in the main class; MDK samples kept
 
-- Status: Accepted
+- Status: Accepted. The part about keeping the MDK samples is superseded by [0026](0026-remove-mdk-samples.md).
 - Date: 2026-10-20
 - Decided by: Claude
 

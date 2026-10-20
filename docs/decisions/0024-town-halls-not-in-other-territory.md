@@ -1,6 +1,6 @@
 # 0024. Town Halls not inside another settlement's territory
 
-- Status: Accepted
+- Status: Accepted. The preview gap under Consequences is closed by [0029](0029-clients-know-other-territories.md).
 - Date: 2026-10-20
 - Decided by: user ("yes that should be locked"), Claude (where it's checked)
 

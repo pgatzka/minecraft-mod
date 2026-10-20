@@ -1,6 +1,7 @@
 # 0014. Removing a Town Hall keeps its settlement
 
-- Status: Accepted. It replaces Claude's first choice that removing the Town Hall dissolves the settlement.
+- Status: Accepted. It replaces Claude's first choice that removing the Town Hall dissolves the settlement. The open gap below
+  is closed by [0028](0028-settlement-moves-to-new-town-hall.md).
 - Date: 2026-10-20
 - Decided by: user ("destroying the town hall should not delete the settlement")
 

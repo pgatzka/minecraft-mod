@@ -9,7 +9,8 @@ for how the code fits together, [testing.md](testing.md) before writing or runni
 A Minecraft **1.20.1 / Forge 47.4.10** mod (mod id `minecraftmod`, package `com.philgatzka.minecraftmod`) about founding
 and growing settlements:
 
-- **Town Hall** block: right-click to found a settlement (one per player). Founding spawns settlers.
+- **Town Hall** block: right-click to found a settlement (one per player). Founding spawns settlers. A settlement whose
+  Town Hall was destroyed can move to a free one.
 - **Settlers**: player-like mobs with random names that belong to a settlement and can be given jobs.
 - **Builder's Hut**: a workplace; its screen assigns one settler as its builder.
 - **Blueprints**: operators capture existing structures around a city block (Blueprint Wand or `/blueprint`)
@@ -21,20 +22,14 @@ and growing settlements:
 
 ## Status (2026-10-20)
 
-Everything above works and is covered by 42 GameTests that pass. Not checked in the real game yet, because GameTests
+Everything above works and is covered by 46 GameTests that pass. Not checked in the real game yet, because GameTests
 can't draw or click: the screens, the selection and site outlines, the Builder's Wand ghost preview, the territory
-fence and the R/B keys. Ask the user to try these.
+fence and the R/B keys, and the Town Hall screen's "Move ... here" button. Ask the user to try these.
 
 **Not built yet / open questions** (ask the user before deciding):
 
 - **Builders don't build yet.** The next step is the Builder's Hut's builder working through construction sites.
-- A leader whose Town Hall was destroyed keeps the settlement but can't give it a new Town Hall
-  ([0014](decisions/0014-town-hall-removal-keeps-settlement.md)).
-- The Builder's Wand preview doesn't know other settlements' territories, so it can show green for a Town Hall site
-  the server then refuses ([0024](decisions/0024-town-halls-not-in-other-territory.md)).
-- `/blueprint load` always places unrotated.
-- The MDK's sample content (example block, example item, sample config values, `Config.items`) is still in the mod.
-- Git: the repository is initialized and everything is staged, but nothing is committed yet. Commit only when asked.
+- Git: work is committed on `main`. Commit only when asked.
 
 ## Working rules (from the user)
 
@@ -66,7 +61,7 @@ Run `runGameTestServer` in the foreground with a timeout, and afterwards check t
 A stopped background run once left Gradle and a server running. The test log is easiest to read via
 `./gradlew runGameTestServer > build/gametest.log` and then grepping for `failed!` and `required tests`.
 
-Known harmless noise: two deprecation warnings from the MDK's `Config.java`, and startup stack traces about
+Known harmless noise: a javac note about deprecated API (overriding `Block.use`/`onRemove` is normal in 1.20.1), and startup stack traces about
 `setAccessible`/netty/`server.properties` in the test server log.
 
 ## Repository layout
@@ -76,7 +71,7 @@ docs/                    these notes and the decision log
 tools/                   make_test_structure.py (GameTest platforms), Resize.java (texture downscaling)
 src/main/java/com/philgatzka/minecraftmod/
   MinecraftMod.java      all registrations (blocks, items, entities, menus), event wiring, client setup
-  Config.java            common config (settlers on founding, territory radii, MDK samples)
+  Config.java            common config (settlers on founding, territory radii)
   block/, block/entity/  Town Hall, Builder's Hut, generic workplace block/block entity
   entity/                Settler and its name lists
   settlement/            settlements, settlers, jobs, territory (rules + saved data)

@@ -5,7 +5,8 @@ How the parts of the mod fit together. File paths are relative to `src/main/java
 ## Registration and wiring
 
 Everything is registered in `MinecraftMod.java` with `DeferredRegister`s (blocks, items, block entities, entity
-types, menu types, creative tab), the MDK's pattern ([0004](decisions/0004-registration-in-main-class.md)).
+types, menu types, creative tab), the MDK's pattern ([0004](decisions/0004-registration-in-main-class.md)). The MDK's
+sample content is gone ([0026](decisions/0026-remove-mdk-samples.md)).
 The constructor also registers network packets (`ModNetwork.register()`) and Forge-bus listeners (commands, player
 login/logout, dimension changes, block placement). The nested `ClientModEvents` class registers screens, the
 Settler renderer and key mappings. Other client-only event handlers are `@Mod.EventBusSubscriber(value = Dist.CLIENT)`
@@ -26,10 +27,10 @@ id, and `SettlerEntity` stores its settlement id. The settlement is the single s
 
 Rules live in static service classes that both packets and GameTests call:
 
-- `settlement/Settlements`: founding (`tryCreate`), workplace claiming, job assignment, and what happens when Town
+- `settlement/Settlements`: founding (`tryCreate`), moving to a new Town Hall (`tryMoveTo`), workplace claiming, job assignment, and what happens when Town
   Halls, workplaces or settlers are removed.
 - `settlement/Territory`: computing territory chunks, the "who owns this chunk" checks, the hand-placement event
-  check, and syncing the leader's territory to their client.
+  check, and syncing territories to clients.
 - `blueprint/Blueprints`: checking an area, saving, loading, listing and placing blueprint files.
 - `construction/ConstructionSites`: placing a blueprint as a construction site, plus syncing site outlines to clients.
 
@@ -63,6 +64,7 @@ reserved. All colors are in `UiTheme`.
 | Packet | Direction | Purpose |
 |---|---|---|
 | `CreateSettlementPacket` | to server | found a settlement at the open Town Hall |
+| `MoveSettlementPacket` | to server | make the open Town Hall the new Town Hall of the player's settlement |
 | `AssignWorkerPacket` | to server | set or clear the open workplace's worker |
 | `SaveBlueprintPacket` | to server | save the open Blueprint screen's area |
 | `SelectBlueprintPacket` | to server | put a blueprint on the held Builder's Wand |
@@ -72,7 +74,7 @@ reserved. All colors are in `UiTheme`.
 | `SelectionSyncPacket` | to client | the player's blueprint selection corners, for the outline |
 | `BlueprintPreviewPacket` | to client | a blueprint's blocks (`BlueprintBlocks`) for the ghost preview |
 | `ConstructionSitesPacket` | to client | site outlines in the player's dimension |
-| `TerritoryPacket` | to client | the chunks of the settlement the player leads |
+| `TerritoryPacket` | to client | the chunks of the settlement the player leads, and of all other settlements in the dimension |
 
 The server checks every request again (permissions, distance, rules). Packets that reach client code go through
 `DistExecutor` into `client/ClientPacketHandlers`, so client classes never load on a dedicated server. Client-side
@@ -99,7 +101,9 @@ copies of server data live in `client/ClientSelection` and `client/ClientBluepri
 plus chunks within `buildingTerritoryRadius` (default 1, so 3x3) of each building in `Settlement.buildings()`
 ([0022](decisions/0022-territory-shape.md)). Buildings are workplaces claimed by the settlement. Placement rules are in
 [0023](decisions/0023-buildings-only-in-own-territory.md) and [0024](decisions/0024-town-halls-not-in-other-territory.md).
-The leader's client gets their territory (`TerritoryPacket`) and `ConstructionRenderer` draws a fence along its border.
+Every client gets its own territory and the other settlements' territories in its dimension (`TerritoryPacket`, sent
+to the whole dimension whenever a territory changes, [0029](decisions/0029-clients-know-other-territories.md)).
+`ConstructionRenderer` draws a fence along the player's own border and checks the preview against both sets.
 
 ## Adding a new building type (workplace)
 

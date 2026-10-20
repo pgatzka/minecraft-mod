@@ -8,6 +8,7 @@ import com.philgatzka.minecraftmod.menu.TownHallInfo;
 import com.philgatzka.minecraftmod.menu.TownHallMenu;
 import com.philgatzka.minecraftmod.network.CreateSettlementPacket;
 import com.philgatzka.minecraftmod.network.ModNetwork;
+import com.philgatzka.minecraftmod.network.MoveSettlementPacket;
 import com.philgatzka.minecraftmod.settlement.Settlements;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.network.chat.Component;
@@ -15,7 +16,8 @@ import net.minecraft.world.entity.player.Inventory;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
-// Shows the Town Hall's settlement, or lets the player found one if the Town Hall is free and they don't lead one yet
+// Shows the Town Hall's settlement, or lets the player found one if the Town Hall is free and they don't lead one yet,
+// or move their settlement here if it has lost its Town Hall
 public class TownHallScreen extends UiScreen<TownHallMenu>
 {
     @Nullable
@@ -44,6 +46,14 @@ public class TownHallScreen extends UiScreen<TownHallMenu>
             column.label(Component.translatable("gui.minecraftmod.town_hall.settlement", info.settlementName()), UiTheme.TEXT);
             column.label(Component.translatable("gui.minecraftmod.town_hall.leader", info.leaderName()), UiTheme.TEXT_MUTED);
             column.label(Component.translatable("gui.minecraftmod.town_hall.settlers", info.settlerCount()), UiTheme.TEXT_MUTED);
+        }
+        else if (info.canMoveHere())
+        {
+            column.label(Component.translatable("gui.minecraftmod.town_hall.no_settlement"), UiTheme.TEXT);
+            column.label(Component.translatable("gui.minecraftmod.town_hall.homeless", info.playerSettlementName()), UiTheme.TEXT_MUTED);
+            column.space(4);
+            column.button(Component.translatable("gui.minecraftmod.town_hall.move", info.playerSettlementName()), this::moveSettlement);
+            column.errorLabel();
         }
         else if (!info.canCreate())
         {
@@ -89,5 +99,12 @@ public class TownHallScreen extends UiScreen<TownHallMenu>
             return;
         clearError();
         ModNetwork.CHANNEL.sendToServer(new CreateSettlementPacket(nameField.getValue()));
+    }
+
+    // The server checks everything again; on success it reopens this screen showing the settlement
+    private void moveSettlement()
+    {
+        clearError();
+        ModNetwork.CHANNEL.sendToServer(new MoveSettlementPacket());
     }
 }

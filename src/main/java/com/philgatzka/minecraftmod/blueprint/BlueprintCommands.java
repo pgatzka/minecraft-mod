@@ -9,18 +9,20 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.arguments.ResourceLocationArgument;
+import net.minecraft.commands.arguments.TemplateRotationArgument;
 import net.minecraft.commands.arguments.coordinates.BlockPosArgument;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.block.Rotation;
 import net.minecraftforge.event.RegisterCommandsEvent;
 
 import java.util.List;
 import java.util.Optional;
 
-// /blueprint pos1|pos2 [pos], clear, save <name>, load <id> [pos], list
+// /blueprint pos1|pos2 [pos], clear, save <name>, load <id> [pos] [rotation], list
 public final class BlueprintCommands
 {
     private static final SuggestionProvider<CommandSourceStack> BLUEPRINT_IDS = (context, builder) ->
@@ -51,10 +53,14 @@ public final class BlueprintCommands
                 .then(Commands.literal("load")
                         .then(Commands.argument("id", ResourceLocationArgument.id()).suggests(BLUEPRINT_IDS)
                                 .executes(context -> load(context, ResourceLocationArgument.getId(context, "id"),
-                                        BlockPos.containing(context.getSource().getPosition())))
+                                        BlockPos.containing(context.getSource().getPosition()), Rotation.NONE))
                                 .then(Commands.argument("pos", BlockPosArgument.blockPos())
                                         .executes(context -> load(context, ResourceLocationArgument.getId(context, "id"),
-                                                BlockPosArgument.getLoadedBlockPos(context, "pos"))))))
+                                                BlockPosArgument.getLoadedBlockPos(context, "pos"), Rotation.NONE))
+                                        .then(Commands.argument("rotation", TemplateRotationArgument.templateRotation())
+                                                .executes(context -> load(context, ResourceLocationArgument.getId(context, "id"),
+                                                        BlockPosArgument.getLoadedBlockPos(context, "pos"),
+                                                        TemplateRotationArgument.getRotation(context, "rotation")))))))
                 .then(Commands.literal("list")
                         .executes(BlueprintCommands::list)));
     }
@@ -109,7 +115,8 @@ public final class BlueprintCommands
         return Component.translatable("blueprint.minecraftmod.saved", result.id().toString(), result.file().toString());
     }
 
-    private static int load(CommandContext<CommandSourceStack> context, ResourceLocation id, BlockPos origin)
+    // Rotation uses the same names as vanilla's /place template: none, clockwise_90, 180, counterclockwise_90
+    private static int load(CommandContext<CommandSourceStack> context, ResourceLocation id, BlockPos origin, Rotation rotation)
     {
         CommandSourceStack source = context.getSource();
         Optional<Blueprint> blueprint = Blueprints.load(source.getServer(), id);
@@ -118,7 +125,7 @@ public final class BlueprintCommands
             source.sendFailure(Component.translatable("blueprint.minecraftmod.error.not_found", id.toString()));
             return 0;
         }
-        BlueprintSelection placed = Blueprints.place(source.getLevel(), blueprint.get(), origin);
+        BlueprintSelection placed = Blueprints.place(source.getLevel(), blueprint.get(), origin, rotation);
         // Select what was placed, so it is outlined and can be edited and saved again
         if (source.getEntity() instanceof ServerPlayer player)
             PlayerSelections.set(player, placed);

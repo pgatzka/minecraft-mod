@@ -40,8 +40,8 @@ public final class ClientPacketHandlers
         ClientBlueprints.setSites(sites);
     }
 
-    public static void updateTerritory(Set<ChunkPos> chunks)
+    public static void updateTerritory(Set<ChunkPos> chunks, Set<ChunkPos> others)
     {
-        ClientBlueprints.setTerritory(chunks);
+        ClientBlueprints.setTerritory(chunks, others);
     }
 }

@@ -40,7 +40,7 @@ What follows from it: limitations, follow-ups, things to watch out for.
 | [0001](0001-minecraft-1.20.1-forge.md) | Minecraft 1.20.1 with Forge 47.4.10, from the official MDK | Accepted |
 | [0002](0002-project-identity.md) | Mod id `minecraftmod`, package `com.philgatzka.minecraftmod` | Accepted |
 | [0003](0003-build-on-jdk-21.md) | Run Gradle on JDK 21; Java 17 toolchain downloaded automatically | Accepted |
-| [0004](0004-registration-in-main-class.md) | All registrations in the main class; MDK samples kept | Accepted |
+| [0004](0004-registration-in-main-class.md) | All registrations in the main class; MDK samples kept | Accepted (samples part superseded by 0026) |
 | [0005](0005-textures-from-sphaxified.md) | Textures only from BDcraft's Sphaxified repo, at 128x128 | Accepted |
 | [0006](0006-city-block-materials.md) | Town Hall is stone (pickaxe), Builder's Hut is wood (axe) | Accepted |
 | [0007](0007-settler-entity.md) | How the Settler entity is built | Accepted |
@@ -62,3 +62,7 @@ What follows from it: limitations, follow-ups, things to watch out for.
 | [0023](0023-buildings-only-in-own-territory.md) | Buildings other than Town Halls only inside your own territory | Accepted |
 | [0024](0024-town-halls-not-in-other-territory.md) | Town Halls not inside another settlement's territory | Accepted |
 | [0025](0025-docs-and-decision-log.md) | Handover notes in `docs/` and this decision log | Accepted |
+| [0026](0026-remove-mdk-samples.md) | MDK sample content removed; creative tab is `minecraftmod:main` | Accepted |
+| [0027](0027-blueprint-load-rotation.md) | `/blueprint load` takes an optional rotation | Accepted |
+| [0028](0028-settlement-moves-to-new-town-hall.md) | A settlement without a Town Hall can move to a free one | Accepted |
+| [0029](0029-clients-know-other-territories.md) | Clients know other settlements' territories | Accepted |

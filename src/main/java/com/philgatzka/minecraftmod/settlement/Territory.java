@@ -113,23 +113,28 @@ public final class Territory
 
     // --- Telling a leader's client about their territory, so it can be shown ---
 
+    // Sends the player the territory of the settlement they lead in their dimension, and the other settlements' territories
+    // there (so the Builder's Wand preview can refuse Town Hall sites inside them, like the server does)
     public static void syncTo(ServerPlayer player)
     {
         // GameTest mock players have no connection to send to
         if (player.connection == null)
             return;
-        Set<ChunkPos> chunks = Settlements.getLedBy(player.serverLevel(), player)
-                .filter(settlement -> settlement.dimension().equals(player.level().dimension()))
-                .map(Territory::of)
-                .orElse(Set.of());
-        ModNetwork.CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), new TerritoryPacket(chunks));
+        UUID own = Settlements.getLedBy(player.serverLevel(), player).map(Settlement::id).orElse(null);
+        Set<ChunkPos> chunks = new HashSet<>();
+        Set<ChunkPos> others = new HashSet<>();
+        for (Settlement settlement : SettlementData.get(player.server).all())
+            if (settlement.dimension().equals(player.level().dimension()))
+                (settlement.id().equals(own) ? chunks : others).addAll(of(settlement));
+        ModNetwork.CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), new TerritoryPacket(chunks, others));
     }
 
-    public static void syncLeader(MinecraftServer server, Settlement settlement)
+    // The settlement's territory changed: everyone in its dimension sees it, either as their own or as someone else's
+    public static void syncChanged(MinecraftServer server, Settlement settlement)
     {
-        ServerPlayer leader = server.getPlayerList().getPlayer(settlement.leaderId());
-        if (leader != null)
-            syncTo(leader);
+        ServerLevel level = server.getLevel(settlement.dimension());
+        if (level != null)
+            level.players().forEach(Territory::syncTo);
     }
 
     public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event)

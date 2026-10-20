@@ -11,22 +11,25 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Supplier;
 
-// Server -> client: the chunks of the settlement this player leads (empty = none here), so the client can show the territory
-public record TerritoryPacket(Set<ChunkPos> chunks)
+// Server -> client: the chunks of the settlement this player leads (empty = none here), so the client can show the territory,
+// and the chunks of all other settlements in this dimension, so the Builder's Wand preview knows where Town Halls may not go
+public record TerritoryPacket(Set<ChunkPos> chunks, Set<ChunkPos> others)
 {
     public void encode(FriendlyByteBuf buf)
     {
         buf.writeCollection(chunks, (b, chunk) -> b.writeLong(chunk.toLong()));
+        buf.writeCollection(others, (b, chunk) -> b.writeLong(chunk.toLong()));
     }
 
     public static TerritoryPacket decode(FriendlyByteBuf buf)
     {
-        return new TerritoryPacket(buf.readCollection(HashSet::new, b -> new ChunkPos(b.readLong())));
+        return new TerritoryPacket(buf.readCollection(HashSet::new, b -> new ChunkPos(b.readLong())),
+                buf.readCollection(HashSet::new, b -> new ChunkPos(b.readLong())));
     }
 
     public void handle(Supplier<NetworkEvent.Context> context)
     {
         // Keep client-only classes out of the dedicated server
-        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> ClientPacketHandlers.updateTerritory(chunks));
+        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> ClientPacketHandlers.updateTerritory(chunks, others));
     }
 }

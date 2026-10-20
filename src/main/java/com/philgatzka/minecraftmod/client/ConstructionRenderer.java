@@ -147,8 +147,10 @@ public final class ConstructionRenderer
         BlueprintPlacement placement = new BlueprintPlacement(target, preview.blocks().anchor(), preview.blocks().size(), rotation);
         boolean hasCityBlock = player.isCreative() || preview.blocks().blocks().containsKey(preview.blocks().anchor())
                 && player.getInventory().contains(new ItemStack(preview.blocks().blocks().get(preview.blocks().anchor()).getBlock()));
-        boolean inTerritory = !ConstructionSites.needsTerritory(preview.blocks().blocks().get(preview.blocks().anchor()).getBlock())
-                || Territory.covers(ClientBlueprints.territory(), placement.area());
+        // The same territory rules as ConstructionSites.place: buildings inside the own territory, Town Halls outside everyone else's
+        boolean inTerritory = ConstructionSites.needsTerritory(preview.blocks().blocks().get(preview.blocks().anchor()).getBlock())
+                ? Territory.covers(ClientBlueprints.territory(), placement.area())
+                : !Territory.touches(ClientBlueprints.otherTerritory(), placement.area());
         boolean valid = hasCityBlock && inTerritory && ConstructionSites.checkArea(minecraft.level, placement,
                 ClientBlueprints.sites().stream().map(ConstructionSite.Outline::area).toList()) == null;
 

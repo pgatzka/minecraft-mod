@@ -20,6 +20,8 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.Rotation;
+import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlaceSettings;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
 import net.minecraft.world.level.storage.LevelResource;
@@ -273,11 +275,14 @@ public final class Blueprints
         return listed;
     }
 
-    // Places the blueprint with its min corner at origin and returns the area it now covers
-    public static BlueprintSelection place(ServerLevel level, Blueprint blueprint, BlockPos origin)
+    // Places the blueprint turned by `rotation`, with the min corner of the rotated area at origin, and returns that area
+    public static BlueprintSelection place(ServerLevel level, Blueprint blueprint, BlockPos origin, Rotation rotation)
     {
-        blueprint.template().placeInWorld(level, origin, origin, new StructurePlaceSettings(), level.random, Block.UPDATE_ALL);
-        BlockPos size = new BlockPos(blueprint.template().getSize());
-        return new BlueprintSelection(origin, origin.offset(size.getX() - 1, size.getY() - 1, size.getZ() - 1));
+        StructurePlaceSettings settings = new StructurePlaceSettings().setRotation(rotation);
+        // The template turns around its first block, so shift it until the rotated area starts at origin again
+        BoundingBox box = blueprint.template().getBoundingBox(settings, BlockPos.ZERO);
+        BlockPos start = origin.offset(-box.minX(), -box.minY(), -box.minZ());
+        blueprint.template().placeInWorld(level, start, start, settings, level.random, Block.UPDATE_ALL);
+        return new BlueprintSelection(origin, origin.offset(box.getXSpan() - 1, box.getYSpan() - 1, box.getZSpan() - 1));
     }
 }

@@ -8,7 +8,7 @@ import net.minecraftforge.network.simple.SimpleChannel;
 
 public final class ModNetwork
 {
-    private static final String PROTOCOL_VERSION = "1";
+    private static final String PROTOCOL_VERSION = "2";
 
     public static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(ResourceLocation.fromNamespaceAndPath(MinecraftMod.MODID, "main"),
             () -> PROTOCOL_VERSION, PROTOCOL_VERSION::equals, PROTOCOL_VERSION::equals);
@@ -74,6 +74,11 @@ public final class ModNetwork
                 .encoder(TerritoryPacket::encode)
                 .decoder(TerritoryPacket::decode)
                 .consumerMainThread(TerritoryPacket::handle)
+                .add();
+        CHANNEL.messageBuilder(MoveSettlementPacket.class, id++, NetworkDirection.PLAY_TO_SERVER)
+                .encoder(MoveSettlementPacket::encode)
+                .decoder(MoveSettlementPacket::decode)
+                .consumerMainThread(MoveSettlementPacket::handle)
                 .add();
     }
 }

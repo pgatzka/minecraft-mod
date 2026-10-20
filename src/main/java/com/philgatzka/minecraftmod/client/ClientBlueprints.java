@@ -28,6 +28,8 @@ public final class ClientBlueprints
     private static List<ConstructionSite.Outline> sites = List.of();
     // Chunks of the settlement the local player leads (empty if none)
     private static Set<ChunkPos> territory = Set.of();
+    // Chunks of all other settlements in this dimension
+    private static Set<ChunkPos> otherTerritory = Set.of();
 
     private ClientBlueprints()
     {
@@ -63,9 +65,15 @@ public final class ClientBlueprints
         return territory;
     }
 
-    static void setTerritory(Set<ChunkPos> chunks)
+    static Set<ChunkPos> otherTerritory()
+    {
+        return otherTerritory;
+    }
+
+    static void setTerritory(Set<ChunkPos> chunks, Set<ChunkPos> others)
     {
         territory = Set.copyOf(chunks);
+        otherTerritory = Set.copyOf(others);
     }
 
     // On disconnect: the next server may have different blueprints and sites
@@ -75,5 +83,6 @@ public final class ClientBlueprints
         REQUESTED.clear();
         sites = List.of();
         territory = Set.of();
+        otherTerritory = Set.of();
     }
 }
