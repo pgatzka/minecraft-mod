@@ -6,7 +6,7 @@ Start with `docs/README.md` (status, open questions, build/test commands), then 
 Rules for working on this project:
 
 - Never start the game yourself (no `runClient`/`runServer`). Check changes only with
-  `./gradlew runGameTestServer`, run in the foreground with `JAVA_HOME` set to JDK 21, then make sure no test server
+  `./gradlew runGameTestServer`, run in the foreground (Gradle finds JDK 21 by itself, see `docs/decisions/0033`), then make sure no test server
   `java.exe` is left running.
 - Record every decision you make in `docs/decisions/NNNN-title.md` (template and index in `docs/decisions/README.md`)
   in the same change, and keep `docs/README.md` current.

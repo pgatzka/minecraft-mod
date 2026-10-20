@@ -15,16 +15,15 @@
   `MODRINTH_TOKEN` / `CURSEFORGE_TOKEN` secrets exist (with `MODRINTH_PROJECT_ID` / `CURSEFORGE_PROJECT_ID`
   variables), it also publishes to those sites with `Kir-Antipov/mc-publish`. Without them, that step is skipped.
 - **Shared setup** (`.github/actions/setup-build`): installs Temurin 17 and 21, sets up `gradle/actions/setup-gradle`
-  (caches Gradle and the ForgeGradle/Minecraft downloads), and writes `org.gradle.java.home` (JDK 21) plus
-  `org.gradle.java.installations.fromEnv=JAVA_HOME_17_X64` into the runner's `~/.gradle/gradle.properties`.
+  (caches Gradle and the ForgeGradle/Minecraft downloads), and writes
+  `org.gradle.java.installations.fromEnv=JAVA_HOME_17_X64,JAVA_HOME_21_X64` into the runner's
+  `~/.gradle/gradle.properties`, so Gradle finds both JDKs ([0033](0033-gradle-picks-its-own-jdk.md)).
 - **Dependabot** keeps only the GitHub Actions up to date, grouped into one weekly pull request.
 - `gradlew` is now executable in git (mode 100755), which Linux runners need.
 
 ## Why
 - The GameTests are the project's only automatic check ([0008](0008-automated-tests-only.md)), so every change runs
   them. They run headless in about 30 seconds, so a separate test job wasn't worth a second Minecraft setup.
-- Settings in the Gradle user home take priority over the project's `gradle.properties`. That makes CI independent of
-  the machine-specific `org.gradle.java.home` line that is currently in the project file, without touching that file.
 - Gradle, ForgeGradle and Forge are pinned to the 1.20.1 MDK's tested setup ([0001](0001-minecraft-1.20.1-forge.md),
   [0003](0003-build-on-jdk-21.md)). Automated bumps (for example, Gradle 9, which ForgeGradle 6 doesn't support)
   would only produce broken pull requests.

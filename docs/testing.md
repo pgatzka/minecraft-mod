@@ -1,7 +1,7 @@
 # Testing
 
 All tests are Minecraft GameTests in `src/main/java/com/philgatzka/minecraftmod/gametest/MinecraftModGameTests.java`.
-Run them with `./gradlew runGameTestServer` using JDK 21 (see [README.md](README.md#build-and-test)). It starts a
+Run them with `./gradlew runGameTestServer` (see [README.md](README.md#build-and-test)). It starts a
 headless server, runs every test, and exits with a non-zero code if any fail. **Never test by starting the client or
 server yourself** ([0008](decisions/0008-automated-tests-only.md)).
 

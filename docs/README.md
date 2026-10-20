@@ -31,9 +31,7 @@ on settlers. Ask the user to try these.
 **Not built yet / open questions** (ask the user before deciding):
 
 - **Builders don't build yet.** The next step is the Builder's Hut's builder working through construction sites.
-- Git: work is committed on `main`. Commit only when asked. There is no GitHub remote yet, so CI hasn't run yet.
-- `gradle.properties` contains `org.gradle.java.home=C:/Program Files/...`, which
-  [0003](decisions/0003-build-on-jdk-21.md) says should not be there. CI overrides it; ask the user whether to remove it.
+- Git: work is committed on `main` and pushed to GitHub (public). Commit only when asked.
 
 ## Working rules (from the user)
 
@@ -46,20 +44,16 @@ on settlers. Ask the user to try these.
 
 ## Build and test
 
-The default Java on this machine is 25, which Gradle 8.8 can't run on. Run Gradle with **JDK 21**; it downloads the
-Java 17 that Minecraft 1.20.1 needs by itself ([0003](decisions/0003-build-on-jdk-21.md)).
+Gradle 8.8 can't run on this machine's default Java 25, but `gradle/gradle-daemon-jvm.properties` makes it start its
+build process on the installed **JDK 21** by itself, whatever `JAVA_HOME` is. The foojay toolchain resolver downloads
+the Java 17 that Minecraft 1.20.1 needs ([0033](decisions/0033-gradle-picks-its-own-jdk.md)).
 
 ```bash
-# Git Bash
-export JAVA_HOME="/c/Program Files/Eclipse Adoptium/jdk-21.0.11.10-hotspot"
 ./gradlew build              # compile and build the jar (build/libs/)
 ./gradlew runGameTestServer  # run all GameTests (about 30 s); exits non-zero if any fail
 ```
 
-```powershell
-# PowerShell
-$env:JAVA_HOME="C:\Program Files\Eclipse Adoptium\jdk-21.0.11.10-hotspot"; .\gradlew runGameTestServer
-```
+(`.\gradlew` in PowerShell.)
 
 Run `runGameTestServer` in the foreground with a timeout, and afterwards check that no `java.exe` from it is left.
 A stopped background run once left Gradle and a server running. The test log is easiest to read via

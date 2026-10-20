@@ -4,7 +4,8 @@ description: Installs JDK 17 (Minecraft) and JDK 21 (Gradle), and sets up Gradle
 runs:
   using: composite
   steps:
-    # Gradle 8.8 runs on JDK 21; the mod compiles and runs on the Java 17 toolchain (docs/decisions/0003)
+    # Gradle 8.8 runs on JDK 21 (gradle/gradle-daemon-jvm.properties); the mod compiles and runs on the Java 17
+    # toolchain (docs/decisions/0033). The last version listed becomes JAVA_HOME.
     - uses: actions/setup-java@v4
       with:
         distribution: temurin
@@ -14,13 +15,9 @@ runs:
 
     - uses: gradle/actions/setup-gradle@v4
 
-    # The project's gradle.properties may point org.gradle.java.home at a local Windows JDK. Settings in the Gradle user
-    # home win over the project's, so point Gradle at the runner's JDK 21 and let the toolchain use the installed JDK 17.
-    - name: Point Gradle at the runner's JDKs
+    # Gradle doesn't look in the runner's tool cache by itself, so tell it about both JDKs
+    - name: Show Gradle the runner's JDKs
       shell: bash
       run: |
         mkdir -p ~/.gradle
-        {
-          echo "org.gradle.java.home=$JAVA_HOME_21_X64"
-          echo "org.gradle.java.installations.fromEnv=JAVA_HOME_17_X64"
-        } >> ~/.gradle/gradle.properties
+        echo "org.gradle.java.installations.fromEnv=JAVA_HOME_17_X64,JAVA_HOME_21_X64" >> ~/.gradle/gradle.properties

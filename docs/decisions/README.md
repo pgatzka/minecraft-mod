@@ -39,7 +39,7 @@ What follows from it: limitations, follow-ups, things to watch out for.
 |---|---|---|
 | [0001](0001-minecraft-1.20.1-forge.md) | Minecraft 1.20.1 with Forge 47.4.10, from the official MDK | Accepted |
 | [0002](0002-project-identity.md) | Mod id `minecraftmod`, package `com.philgatzka.minecraftmod` | Accepted |
-| [0003](0003-build-on-jdk-21.md) | Run Gradle on JDK 21; Java 17 toolchain downloaded automatically | Accepted |
+| [0003](0003-build-on-jdk-21.md) | Run Gradle on JDK 21; Java 17 toolchain downloaded automatically | Superseded by 0033 |
 | [0004](0004-registration-in-main-class.md) | All registrations in the main class; MDK samples kept | Accepted (samples part superseded by 0026) |
 | [0005](0005-textures-from-sphaxified.md) | Textures only from BDcraft's Sphaxified repo, at 128x128 | Accepted |
 | [0006](0006-city-block-materials.md) | Town Hall is stone (pickaxe), Builder's Hut is wood (axe) | Accepted |
@@ -69,3 +69,4 @@ What follows from it: limitations, follow-ups, things to watch out for.
 | [0030](0030-settler-inventory.md) | Settlers have a 4x10 inventory with an armor column | Accepted (tint superseded by 0031) |
 | [0031](0031-vanilla-armor-slot-icons.md) | Empty armor slots show vanilla's armor icons | Accepted |
 | [0032](0032-ci-cd-github-actions.md) | CI/CD with GitHub Actions: build + GameTests, tag releases | Accepted |
+| [0033](0033-gradle-picks-its-own-jdk.md) | Gradle picks its own JDK 21 (daemon JVM criteria); no JAVA_HOME needed | Accepted |

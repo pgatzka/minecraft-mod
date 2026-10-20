@@ -1,6 +1,6 @@
 # 0003. Run Gradle on JDK 21; Java 17 toolchain downloaded automatically
 
-- Status: Accepted
+- Status: Superseded by [0033](0033-gradle-picks-its-own-jdk.md)
 - Date: 2026-10-20
 - Decided by: Claude
 
